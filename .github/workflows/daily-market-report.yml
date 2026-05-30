@@ -1,10 +1,10 @@
-
+</> YAML
 name: Daily Market Telegram Report
 
 on:
-  schedule:
-    - cron: "0 12 * * 1-5"
   workflow_dispatch:
+  schedule:
+    - cron: '0 12 * * 1-5'
 
 jobs:
   send-report:
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
