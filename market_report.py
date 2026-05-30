@@ -26,13 +26,27 @@ WATCHLIST = {
 }
 
 def get_price_change(ticker):
-    data = yf.download(ticker, period="5d", interval="1d", progress=False, auto_adjust=True)
+    data = yf.download(
+        ticker,
+        period="5d",
+        interval="1d",
+        progress=False,
+        auto_adjust=True
+    )
+
     if data.empty or len(data) < 2:
         return None
 
-    latest = float(data["Close"].iloc[-1])
-    previous = float(data["Close"].iloc[-2])
+    close_data = data["Close"]
+
+    if hasattr(close_data, "columns"):
+        close_data = close_data.iloc[:, 0]
+
+    latest = float(close_data.iloc[-1])
+    previous = float(close_data.iloc[-2])
+
     change = ((latest - previous) / previous) * 100
+
     return latest, change
 
 def send_telegram(message):
