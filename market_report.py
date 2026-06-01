@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
     image_url = upload_image_to_cloudinary(image_path)
     blog_title = f"Daily US & Canada Market Report - {datetime.now().strftime('%B %d, %Y')}"
-blog_url = publish_market_post(blog_title, report, image_url)
+    blog_url = publish_market_post(blog_title, report, image_url)
 
     send_telegram_photo(
         image_path,
