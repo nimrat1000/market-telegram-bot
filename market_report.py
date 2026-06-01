@@ -30,7 +30,66 @@ WATCHLIST = {
 
 import cloudinary
 import cloudinary.uploader
+def generate_market_commentary(results):
+    spx = results.get("S&P 500", (0, 0))[1]
+    vix = results.get("VIX", (0, 0))[1]
+    oil = results.get("Oil", (0, 0))[1]
+    gold = results.get("Gold", (0, 0))[1]
+    btc = results.get("Bitcoin", (0, 0))[1]
+    tsx = results.get("TSX Canada", (0, 0))[1]
 
+    # Market Mood
+    if spx > 0 and vix < 0:
+        mood = "Bullish"
+        risk_score = 3
+    elif spx < 0 and vix > 0:
+        mood = "Bearish"
+        risk_score = 8
+    else:
+        mood = "Neutral"
+        risk_score = 5
+
+    summary = f"""
+📊 Market Summary
+
+North American markets showed {'broad strength' if spx > 0 else 'mixed performance'} today.
+The S&P 500 moved {spx:+.2f}% while the TSX gained {tsx:+.2f}%.
+Volatility {'declined' if vix < 0 else 'increased'}, indicating {'improving investor confidence' if vix < 0 else 'rising market caution'}.
+
+🤖 AI Outlook
+
+Current market conditions remain {mood.lower()}.
+{'Falling volatility combined with rising equity prices suggests a favorable environment for risk assets.' if mood == 'Bullish' else ''}
+{'Rising volatility and falling equity prices suggest investors should remain defensive.' if mood == 'Bearish' else ''}
+{'Markets remain balanced with no major risk signals currently dominating sentiment.' if mood == 'Neutral' else ''}
+
+⚠️ Risks To Watch
+
+• VIX: {vix:+.2f}%
+• Oil: {oil:+.2f}%
+• Gold: {gold:+.2f}%
+• Bitcoin: {btc:+.2f}%
+
+Watch for sudden changes in volatility, energy prices, and macroeconomic data releases.
+
+💡 Income Investor View
+
+Income-oriented ETFs remain attractive in stable market conditions.
+Dividend-focused investors should continue monitoring interest rate expectations, market volatility, and sector concentration risks.
+
+📅 Tomorrow's Focus
+
+• US economic releases
+• Bank of Canada developments
+• Oil price trend
+• USD/CAD movement
+• Bitcoin momentum
+
+🧠 Risk Score: {risk_score}/10
+📍 Market Mood: {mood}
+"""
+    return summary
+    
 def upload_image_to_cloudinary(image_path):
     cloudinary.config(
         cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -275,7 +334,8 @@ def build_report(results):
     message += f"\n🧠 Risk Score: {risk_score}/10"
     message += f"\n📍 Market Mood: {mood}"
     message += "\n\n⚠️ Not financial advice. For tracking only."
-
+    message += generate_market_commentary(results)
+    
     return message
 
 
