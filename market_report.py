@@ -5,6 +5,7 @@ import yfinance as yf
 import cloudinary
 import cloudinary.uploader
 from PIL import Image, ImageDraw, ImageFont
+from blogger_publisher import publish_market_post
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -287,6 +288,8 @@ if __name__ == "__main__":
     image_path = create_market_image(results)
 
     image_url = upload_image_to_cloudinary(image_path)
+    blog_title = f"Daily US & Canada Market Report - {datetime.now().strftime('%B %d, %Y')}"
+blog_url = publish_market_post(blog_title, report, image_url)
 
     send_telegram_photo(
         image_path,
@@ -294,5 +297,6 @@ if __name__ == "__main__":
     )
 
     send_telegram(f"✅ Image uploaded successfully:\n{image_url}")
+    send_telegram(f"✅ Blogger post published:\n{blog_url}")
 
     send_telegram(report)
