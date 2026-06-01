@@ -1,9 +1,8 @@
-
 import os
 import requests
 from datetime import datetime
 import yfinance as yf
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -25,9 +24,13 @@ WATCHLIST = {
     "RIDH": "RIDH.TO",
     "FCGI": "FCGI.TO",
 }
-def create_market_image():
-    # create image here
-    
+
+
+def get_font(size, bold=False):
+    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    return ImageFont.truetype(font_path, size)
+
+
 def get_price_change(ticker):
     data = yf.download(
         ticker,
@@ -49,8 +52,164 @@ def get_price_change(ticker):
     previous = float(close_data.iloc[-2])
 
     change = ((latest - previous) / previous) * 100
-
     return latest, change
+
+
+def collect_results():
+    results = {}
+
+    for name, ticker in WATCHLIST.items():
+        result = get_price_change(ticker)
+        if result:
+            results[name] = result
+
+    return results
+
+
+def create_market_image(results, filename="market_report.png"):
+    width, height = 1080, 1920
+    img = Image.new("RGB", (width, height), (8, 18, 38))
+    draw = ImageDraw.Draw(img)
+
+    title_font = get_font(64, True)
+    subtitle_font = get_font(34)
+    card_font = get_font(38, True)
+    small_font = get_font(28)
+    footer_font = get_font(24)
+
+    # Background gradient
+    for y in range(height):
+        r = int(8 + (y / height) * 14)
+        g = int(18 + (y / height) * 24)
+        b = int(38 + (y / height) * 48)
+        draw.line([(0, y), (width, y)], fill=(r, g, b))
+
+    today = datetime.now().strftime("%B %d, %Y")
+
+    draw.text((70, 70), "DAILY MARKET BRIEF", font=title_font, fill="white")
+    draw.text((70, 150), "US + Canada Stock Market Snapshot", font=subtitle_font, fill=(190, 210, 240))
+    draw.text((70, 205), today, font=small_font, fill=(160, 180, 215))
+
+    draw.rounded_rectangle(
+        [55, 290, 1025, 1500],
+        radius=35,
+        fill=(15, 31, 64),
+        outline=(65, 100, 160),
+        width=3
+    )
+
+    image_items = [
+        "S&P 500",
+        "Nasdaq",
+        "TSX Canada",
+        "Bitcoin",
+        "USD/CAD",
+        "VIX"
+    ]
+
+    y = 345
+
+    for name in image_items:
+        if name not in results:
+            continue
+
+        price, change = results[name]
+        change_color = (65, 210, 125) if change >= 0 else (235, 90, 90)
+
+        draw.rounded_rectangle(
+            [90, y, 990, y + 145],
+            radius=24,
+            fill=(22, 43, 86)
+        )
+
+        display_name = "TSX" if name == "TSX Canada" else name
+
+        if name == "Bitcoin":
+            price_text = f"${price:,.0f}"
+        elif name == "USD/CAD":
+            price_text = f"{price:.4f}"
+        else:
+            price_text = f"{price:,.2f}"
+
+        draw.text((125, y + 28), display_name, font=card_font, fill="white")
+        draw.text((125, y + 86), price_text, font=small_font, fill=(185, 205, 235))
+        draw.text((760, y + 50), f"{change:+.2f}%", font=card_font, fill=change_color)
+
+        y += 175
+
+    risk_score = calculate_risk_score(results)
+    mood = get_market_mood(risk_score)
+
+    draw.rounded_rectangle(
+        [90, 1385, 990, 1475],
+        radius=24,
+        fill=(25, 55, 100)
+    )
+
+    draw.text(
+        (125, 1410),
+        f"Risk Score: {risk_score}/10   Mood: {mood}",
+        font=small_font,
+        fill="white"
+    )
+
+    draw.rounded_rectangle(
+        [55, 1560, 1025, 1770],
+        radius=35,
+        fill=(245, 248, 255)
+    )
+
+    draw.text((85, 1598), "Read the full AI market report", font=card_font, fill=(10, 25, 50))
+    draw.text((85, 1660), "US markets • TSX • USD/CAD • Bitcoin • ETFs", font=small_font, fill=(40, 70, 110))
+    draw.text((85, 1720), "New update every weekday morning", font=small_font, fill=(40, 70, 110))
+
+    draw.text(
+        (70, 1840),
+        "Educational content only • Not financial advice",
+        font=footer_font,
+        fill=(180, 195, 220)
+    )
+
+    img.save(filename)
+    return filename
+
+
+def calculate_risk_score(results):
+    score = 5
+
+    vix = results.get("VIX")
+    sp500 = results.get("S&P 500")
+    nasdaq = results.get("Nasdaq")
+    bitcoin = results.get("Bitcoin")
+
+    if vix:
+        vix_price, vix_change = vix
+        if vix_price > 25:
+            score += 2
+        elif vix_price < 18:
+            score -= 1
+
+    if sp500 and sp500[1] < -1:
+        score += 1
+    elif sp500 and sp500[1] > 1:
+        score -= 1
+
+    if nasdaq and nasdaq[1] < -1:
+        score += 1
+
+    if bitcoin and bitcoin[1] < -2:
+        score += 1
+
+    return max(1, min(10, score))
+
+
+def get_market_mood(risk_score):
+    if risk_score <= 3:
+        return "Constructive"
+    elif risk_score <= 6:
+        return "Neutral"
+    return "Risk-Off"
+
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -58,15 +217,24 @@ def send_telegram(message):
     response = requests.post(url, json=payload)
     response.raise_for_status()
 
-def build_report():
+
+def send_telegram_photo(image_path, caption):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+
+    with open(image_path, "rb") as image:
+        files = {"photo": image}
+        data = {
+            "chat_id": CHAT_ID,
+            "caption": caption
+        }
+
+        response = requests.post(url, data=data, files=files)
+        response.raise_for_status()
+
+
+def build_report(results):
     today = datetime.now().strftime("%B %d, %Y")
     message = f"📊 Daily US & Canada Market Report\n{today}\n\n"
-
-    results = {}
-    for name, ticker in WATCHLIST.items():
-        result = get_price_change(ticker)
-        if result:
-            results[name] = result
 
     message += "🇺🇸 US Market\n"
     for name in ["S&P 500", "Nasdaq", "Dow Jones", "VIX"]:
@@ -84,12 +252,29 @@ def build_report():
     for name in ["HDIF", "HHIC", "CDAY", "SDAY", "RIDH", "FCGI"]:
         if name in results:
             price, change = results[name]
-            message += f"- {name}: {price:.2f} ({change:+.2f}%)\n"
+            message += f"- {name}: ${price:.2f} ({change:+.2f}%)\n"
 
-    message += "\n⚠️ Not financial advice. For tracking only."
+    risk_score = calculate_risk_score(results)
+    mood = get_market_mood(risk_score)
+
+    message += f"\n🧠 Risk Score: {risk_score}/10"
+    message += f"\n📍 Market Mood: {mood}"
+    message += "\n\n⚠️ Not financial advice. For tracking only."
+
     return message
 
+
 if __name__ == "__main__":
-    report = build_report()
+    results = collect_results()
+
+    report = build_report(results)
     print(report)
+
+    image_path = create_market_image(results)
+
+    send_telegram_photo(
+        image_path,
+        "📊 Daily Market Brief\nUS + Canada market snapshot\n\nNot financial advice."
+    )
+
     send_telegram(report)
