@@ -2,6 +2,8 @@ import os
 import requests
 from datetime import datetime
 import yfinance as yf
+import cloudinary
+import cloudinary.uploader
 from PIL import Image, ImageDraw, ImageFont
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -28,6 +30,20 @@ WATCHLIST = {
 import cloudinary
 import cloudinary.uploader
 
+def upload_image_to_cloudinary(image_path):
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+        secure=True
+    )
+
+    upload_result = cloudinary.uploader.upload(
+        image_path,
+        folder="market-reports"
+    )
+
+    return upload_result["secure_url"]
 def upload_image_to_cloudinary(image_path):
     cloudinary.config(
         cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -284,9 +300,13 @@ if __name__ == "__main__":
 
     image_path = create_market_image(results)
 
+    image_url = upload_image_to_cloudinary(image_path)
+
     send_telegram_photo(
         image_path,
         "📊 Daily Market Brief\nUS + Canada market snapshot\n\nNot financial advice."
     )
+
+    send_telegram(f"✅ Image uploaded successfully:\n{image_url}")
 
     send_telegram(report)
