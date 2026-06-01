@@ -25,7 +25,19 @@ WATCHLIST = {
     "FCGI": "FCGI.TO",
 }
 
+import cloudinary
+import cloudinary.uploader
 
+def upload_image_to_cloudinary(image_path):
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+        secure=True
+    )
+
+    upload_result = cloudinary.uploader.upload(image_path)
+    return upload_result["secure_url"]
 def get_font(size, bold=False):
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     return ImageFont.truetype(font_path, size)
