@@ -4,3 +4,5 @@ requests
 openai
 pillow
 cloudinary
+google-api-python-client
+google-auth
