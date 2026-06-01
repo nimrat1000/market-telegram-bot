@@ -11,8 +11,5 @@ headers = {
 
 response = requests.get(url, headers=headers)
 
-print("================================")
 print("STATUS:", response.status_code)
-print("================================")
 print(response.text)
-print("================================")
