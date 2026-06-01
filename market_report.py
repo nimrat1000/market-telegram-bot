@@ -3,6 +3,7 @@ import os
 import requests
 from datetime import datetime
 import yfinance as yf
+from PIL import Image, ImageDraw
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -24,7 +25,9 @@ WATCHLIST = {
     "RIDH": "RIDH.TO",
     "FCGI": "FCGI.TO",
 }
-
+def create_market_image():
+    # create image here
+    
 def get_price_change(ticker):
     data = yf.download(
         ticker,
