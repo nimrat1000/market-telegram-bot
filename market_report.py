@@ -357,7 +357,7 @@ if __name__ == "__main__":
     image_url
 )
 
-send_telegram("📌 Buffer post created for Pinterest.")
+    send_telegram("📌 Buffer post created for Pinterest.")
     send_telegram_photo(
         image_path,
         "📊 Daily Market Brief\nUS + Canada market snapshot\n\nNot financial advice."
