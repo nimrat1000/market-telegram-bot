@@ -44,7 +44,7 @@ Read the full report:
                 "text": caption,
                 "channelId": BUFFER_CHANNEL_ID,
                 "schedulingType": "automatic",
-                "mode": "addToQueue",
+                "mode": "now",
                 "assets": [
                     {
                         "image": {
