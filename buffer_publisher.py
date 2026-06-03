@@ -56,5 +56,9 @@ Read the full report:
     }
 
     response = requests.post(BUFFER_GRAPHQL_URL, headers=headers, json=mutation)
+
+    print("BUFFER STATUS:", response.status_code)
+    print("BUFFER RESPONSE:", response.text)
+
     response.raise_for_status()
     return response.json()
