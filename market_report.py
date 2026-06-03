@@ -99,7 +99,12 @@ def upload_image_to_cloudinary(image_path):
         secure=True
     )
 
-    upload_result = cloudinary.uploader.upload(image_path)
+    upload_result = cloudinary.uploader.upload(
+    image_path,
+    folder="market-reports",
+    resource_type="image",
+    format="png"
+)
     return upload_result["secure_url"]
 def get_font(size, bold=False):
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
