@@ -16,9 +16,6 @@ Daily US & Canada Market Report.
 Read the full report:
 {blog_url}
 
-Market image:
-{image_url}
-
 #StockMarket #Investing #DividendInvesting #CanadaInvesting #MarketReport
 """
 
@@ -42,7 +39,7 @@ Market image:
           }
         }
         """,
-       "variables": {
+        "variables": {
             "input": {
                 "text": caption,
                 "channelId": BUFFER_CHANNEL_ID,
@@ -52,11 +49,12 @@ Market image:
                     {
                         "image": {
                             "url": image_url
-                }
+                        }
+                    }
+                ]
             }
-        ]
+        }
     }
-}
 
     response = requests.post(BUFFER_GRAPHQL_URL, headers=headers, json=mutation)
 
