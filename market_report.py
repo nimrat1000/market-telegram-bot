@@ -6,6 +6,7 @@ import cloudinary
 import cloudinary.uploader
 from PIL import Image, ImageDraw, ImageFont
 from blogger_publisher import publish_market_post
+from buffer_publisher import publish_to_buffer
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -350,7 +351,13 @@ if __name__ == "__main__":
     image_url = upload_image_to_cloudinary(image_path)
     blog_title = f"Daily US & Canada Market Report - {datetime.now().strftime('%B %d, %Y')}"
     blog_url = publish_market_post(blog_title, report, image_url)
+    buffer_result = publish_to_buffer(
+    blog_title,
+    blog_url,
+    image_url
+)
 
+send_telegram("📌 Buffer post created for Pinterest.")
     send_telegram_photo(
         image_path,
         "📊 Daily Market Brief\nUS + Canada market snapshot\n\nNot financial advice."
