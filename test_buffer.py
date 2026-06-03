@@ -10,17 +10,28 @@ headers = {
     "Content-Type": "application/json"
 }
 
-query = {
+mutation = {
     "query": """
-    query {
-      me {
-        id
+    mutation {
+      createIdea(input: {
+        content: {
+          title: "Test Market Report Idea"
+          text: "This is a test idea created from GitHub Actions."
+        }
+      }) {
+        ... on Idea {
+          id
+          content {
+            title
+            text
+          }
+        }
       }
     }
     """
 }
 
-response = requests.post(url, headers=headers, json=query)
+response = requests.post(url, headers=headers, json=mutation)
 
 print("STATUS:", response.status_code)
 print(response.text)
