@@ -3,13 +3,14 @@ import requests
 
 API_KEY = os.getenv("BUFFER_API_KEY")
 
-url = "https://api.bufferapp.com/1/profiles.json"
-
-params = {
-    "access_token": API_KEY
+headers = {
+    "Authorization": f"Bearer {API_KEY}"
 }
 
-response = requests.get(url, params=params)
+response = requests.get(
+    "https://api.buffer.com/graphql",
+    headers=headers
+)
 
 print("STATUS:", response.status_code)
-print(response.text)
+print(response.text[:500])
