@@ -42,16 +42,21 @@ Market image:
           }
         }
         """,
-        "variables": {
+       "variables": {
             "input": {
                 "text": caption,
                 "channelId": BUFFER_CHANNEL_ID,
                 "schedulingType": "automatic",
                 "mode": "addToQueue",
-                
+                "assets": [
+                    {
+                        "image": {
+                            "url": image_url
+                }
             }
-        }
+        ]
     }
+}
 
     response = requests.post(BUFFER_GRAPHQL_URL, headers=headers, json=mutation)
 
